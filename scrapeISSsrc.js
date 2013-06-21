@@ -1,14 +1,31 @@
 (function(){
     var w = window.open("about:blank","attitudeData","width=1048,height=800,scrollbars=yes");
+    var lastrow = "";
+
     attitude = {
-        yawcurrent : $('span [field=USLAB000YAW]'),
-        yawcommand : $('span [field="USLAB00CYAW"]'),
+        yaw : $('span [field=USLAB000YAW]'),
+        yawcmd : $('span [field="USLAB00CYAW"]'),
 
-        pitchcurrent : $('span [field=USLAB000PIT]'),
-        pitchcommand : $('span [field="USLAB00CPIT"]'),
+        pitch : $('span [field=USLAB000PIT]'),
+        pitchcmd : $('span [field="USLAB00CPIT"]'),
 
-        rollcurrent : $('span [field=USLAB00ROLL]'),
-        rollcommand : $('span [field="USLAB0CROLL"]')
+        roll : $('span [field=USLAB00ROLL]'),
+        rollcmd : $('span [field="USLAB0CROLL"]')
+    }
+
+    function JSONRow() {
+        var date = new Date();
+        var row = {
+            date: date.getUTCFullYear() + leadzero(date.getUTCMonth()+1) + leadzero(date.getUTCDate()),
+            time: leadzero(date.getUTCHours()) + leadzero(date.getUTCMinutes()) + leadzero(date.getUTCSeconds()),
+            yaw: "23",
+            yawcmd: "2443",
+            pitch: "232",
+            pitchcmd: "34",
+            roll: "656",
+            rollcmd: "567"
+        }
+        // jQuery.extend(settings, options);
     }
 
     function makeRow() {
@@ -18,7 +35,7 @@
 
         for (var key in attitude) {
             num = attitude[key].text().trim();
-            if (isNaN(num) || num == "") {  
+            if (isNaN(num) || num == "") {  yyy
                 num = -999;
             }
             rowdata += "<td>" + num + "</td>";
@@ -29,7 +46,17 @@
     }
 
     function addRow() {
-        $(w.document.getElementsByTagName("tr")).last().after(makeRow());
+        newrow = makeRow();
+        if (newrow != lastrow) {
+            // Prevents duplicate rows
+            $(w.document.getElementsByTagName("tr")).last().after(newrow); //print to window
+            insertRow(newrow);
+            lastrow = newrow;
+        }
+    }
+
+    function insertRow(row) { // insert into database
+        $.post("http://localhost/iss/addentry.php", row, function(data) { console.log(data); }, "json");
     }
 
     function leadzero(num) {
