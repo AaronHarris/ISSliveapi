@@ -13,19 +13,6 @@
         rollcmd : $('span [field="USLAB0CROLL"]')
     }
 
-    function JSONRow() {
-        var date = new Date();
-        var row = {
-            date: date.getUTCFullYear() + leadzero(date.getUTCMonth()+1) + leadzero(date.getUTCDate()),
-            time: leadzero(date.getUTCHours()) + leadzero(date.getUTCMinutes()) + leadzero(date.getUTCSeconds()),
-            yaw: "23",
-            yawcmd: "2443",
-            pitch: "232",
-            pitchcmd: "34",
-            roll: "656",
-            rollcmd: "567"
-        }
-        // jQuery.extend(settings, options);
     }
 
     function makeRow() {
