@@ -13,8 +13,6 @@
         rollcmd : $('span [field="USLAB0CROLL"]')
     }
 
-    }
-
     function makeRow() {
         var date = new Date();
 
