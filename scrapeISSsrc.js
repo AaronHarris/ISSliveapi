@@ -74,11 +74,7 @@
     }
 
     function leadzero(num) {
-        if (num < 10) {
-            return "0" + num;
-        } else {
-            return "" + num;
-        }
+        return num < 10 ? "0" + num : "" + num;
     }
 
     var tablehtml='<table border="1"><tr><th>Date</th><th>Time(UTC)</th><th>Current Yaw</th><th>Commanded Yaw</th><th>Current Pitch</th><th>Commanded Pitch</th><th>Current Roll</th><th>Commanded Roll</th></tr></table>';
