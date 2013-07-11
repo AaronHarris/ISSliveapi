@@ -21,7 +21,7 @@
         var date = new Date();
         var row = {
             date: date.getUTCFullYear() + leadzero(date.getUTCMonth()+1) + leadzero(date.getUTCDate()),
-            time: leadzero(date.getUTCHours()) + leadzero(date.getUTCMinutes()) + leadzero(date.getUTCSeconds()),
+            time: leadzero(date.getUTCHours()) + leadzero(date.getUTCMinutes()) + leadzero(date.getUTCSeconds())
         }
 
         for (var key in attitude) {
@@ -29,6 +29,7 @@
                 num = attitude[key].text().trim();
                 if (isNaN(num) || !num) {
                     num = -999;
+                    return;
                 }
                 row[key] = num;
             }
@@ -39,7 +40,9 @@
 
     // merely ensures merges this row with last row if in same second, otherwise if new second, writes the last row and
     function addRow() {
-        newrow = grabRow();
+        newrowJSON = grabRow();
+        if (!newrowJSON) return;
+        newrow = conv2Table(newrowJSON);
         if (buffrow.time != newrow.time) { // if we have moved onto a new second
             if (!areEqual(lastrow,buffrow)) { // and if we are not writing the same data as previously written
                 insetRow(buffrow);
@@ -67,23 +70,22 @@
 
     function areEqual(o1, o2) {
         for (var key in o1) {
-            if (key != "time") {
-                if (o1[key] != o2[key]) return false;
+            if (key != "time" && o1[key] != o2[key]) {
+                return false;
             }
         }
         return true;
     }
 
     function leadzero(num) {
-        if (num < 10) {
-            return "0" + num;
-        } else {
-            return "" + num;
-        }
+        return num < 10 ? "0" + num : "" + num;
     }
 
     var tablehtml='<table border="1"><tr><th>Date</th><th>Time(UTC)</th><th>Current Yaw</th><th>Commanded Yaw</th><th>Current Pitch</th><th>Commanded Pitch</th><th>Current Roll</th><th>Commanded Roll</th></tr></table>';
+
     $(w.document.body).html(tablehtml);
+
+    addRow();
 
     for (var key in attitude) {
         attitude[key].bind('DOMSubtreeModified', function() {

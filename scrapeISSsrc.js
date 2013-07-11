@@ -1,6 +1,5 @@
 (function(){
     var w = window.open("about:blank","attitudeData","width=1048,height=800,scrollbars=yes");
-    var lastrow = "";
 
     attitude = {
         yaw : $('span [field=USLAB000YAW]'),
@@ -12,6 +11,9 @@
         roll : $('span [field=USLAB00ROLL]'),
         rollcmd : $('span [field="USLAB0CROLL"]')
     }
+
+    var lastrow = ""; // last row written to database
+    var buffrowJSON = {}; // "temporary" row before written to database
 
     function grabRow() {
         var date = new Date();
@@ -25,6 +27,7 @@
                 num = attitude[key].text().trim();
                 if (isNaN(num) || !num) {
                     num = -999;
+                    return;
                 }
                 row[key] = num;
             }
@@ -33,6 +36,27 @@
         return row;
     }
 
+    function addRow() {
+        newrowJSON = grabRow();
+        if (!newrowJSON) return; // if undefined row was returned, stop now
+        newrow = conv2Table(newrowJSON);
+        buffrow = conv2Table(buffrowJSON);
+
+        if ($.isEmptyObject(buffrowJSON) || buffrowJSON.time == newrowJSON.time) {
+            // still in the same second
+            $.extend(buffrowJSON,newrowJSON);
+            return "buffrow = " + JSON.stringify(buffrowJSON) + ", nothing written to database";
+        } else if (buffrow != lastrow) { // we have moved onto a new second, and we are not writing the same data
+            insertRow(buffrowJSON);
+            $(w.document.getElementsByTagName("tr")).last().after(buffrow); //print to window
+            lastrow = buffrow;
+            buffrowJSON = {};
+        }
+    }
+
+    function insertRow(row) { // insert into database
+        $.post("http://localhost/iss/addentry.php", row, null, "json");
+    }
     function conv2Table(obj) {
         var rowdata = "<tr>";
         for (var key in obj) {
@@ -41,38 +65,14 @@
         rowdata += "</tr>"
         return rowdata;
     }
-
-    function makeRow() {
-        return grabRow();
-        
-        /*var date = new Date();
-        var rowdata="<tr><td>" + date.getUTCFullYear() + leadzero(date.getUTCMonth()+1) + leadzero(date.getUTCDate()) + "</td><td>" + leadzero(date.getUTCHours()) + leadzero(date.getUTCMinutes()) + leadzero(date.getUTCSeconds()) + "</td>";
-        for (var key in attitude) {
-            num = attitude[key].text().trim();
-            if (isNaN(num) || num == "") {  yyy
-                num = -999;
+    function areEqual(o1, o2) {
+        for (var key in o1) {
+            if (key != "time" && o1[key] != o2[key]) {
+                return false;
             }
-            rowdata += "<td>" + num + "</td>";
         }
-        rowdata += "</tr>";
-        return rowdata;*/
+        return true;
     }
-
-    function addRow() {
-        newrowJSON = grabRow();
-        newrow = conv2Table(makeRow());
-        if (newrow != lastrow) {
-            // Prevents duplicate rows
-            $(w.document.getElementsByTagName("tr")).last().after(newrow); //print to window
-            insertRow(newrowJSON);
-            lastrow = newrow;
-        }
-    }
-
-    function insertRow(row) { // insert into database
-        $.post("http://localhost/iss/addentry.php", row, null, "json");
-    }
-
     function leadzero(num) {
         return num < 10 ? "0" + num : "" + num;
     }
